@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+    # Service containers to run with `container-job`
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres:14-alpine
+        # Provide the password for postgres
+        env:
+          POSTGRES_PASSWORD: secret
+          POSTGRES_USER: root
+          POSTGRES_DB: simple_bank
+        # Set health checks to wait until postgres has started
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5431:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17
+
+    - name: Set up golang migrate
+      run: |
+          sudo curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.1/migrate.linux-amd64.tar.gz | tar xvz
+          sudo mv migrate /usr/bin/migrate
+          which migrate
+
+    - name: Run migration
+      run: make migrate-up
+
+    - name: Test
+      run: make test
