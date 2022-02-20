@@ -14,9 +14,9 @@ RETURNING id, from_account_id, to_account_id, amount, created_at
 `
 
 type CreateTransferParams struct {
-	FromAccountID int64
-	ToAccountID   int64
-	Amount        int64
+	FromAccountID int64 `json:"from_account_id"`
+	ToAccountID   int64 `json:"to_account_id"`
+	Amount        int64 `json:"amount"`
 }
 
 func (q *Queries) CreateTransfer(ctx context.Context, arg CreateTransferParams) (Transfer, error) {
@@ -54,8 +54,8 @@ select id, from_account_id, to_account_id, amount, created_at from transfers ORD
 `
 
 type ListTransfersParams struct {
-	Offset int32
-	Limit  int32
+	Offset int32 `json:"offset"`
+	Limit  int32 `json:"limit"`
 }
 
 func (q *Queries) ListTransfers(ctx context.Context, arg ListTransfersParams) ([]Transfer, error) {
@@ -94,9 +94,9 @@ ORDER BY created_at DESC OFFSET $2 LIMIT $3
 `
 
 type ListTransfersByFromParams struct {
-	FromAccountID int64
-	Offset        int32
-	Limit         int32
+	FromAccountID int64 `json:"from_account_id"`
+	Offset        int32 `json:"offset"`
+	Limit         int32 `json:"limit"`
 }
 
 func (q *Queries) ListTransfersByFrom(ctx context.Context, arg ListTransfersByFromParams) ([]Transfer, error) {
