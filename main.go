@@ -6,16 +6,16 @@ import (
 
 	"github.com/hamdysherif/simplebank/api"
 	db "github.com/hamdysherif/simplebank/db/sqlc"
+	"github.com/hamdysherif/simplebank/util"
 	_ "github.com/lib/pq"
 )
 
-const (
-	dbDriver = "postgres"
-	dbSource = "postgresql://root:secret@localhost:5431/simple_bank?sslmode=disable"
-)
-
 func main() {
-	conn, err := sql.Open(dbDriver, dbSource)
+	config, errC := util.LoadConfig(".")
+	if errC != nil {
+		log.Fatal("cann't load configs, ", errC)
+	}
+	conn, err := sql.Open(config.DBDriver, config.DBSource)
 
 	if err != nil {
 		log.Fatal("cann't connect to db", err)
@@ -24,5 +24,5 @@ func main() {
 
 	server := api.NewServer(db.NewStore(conn))
 
-	server.Start("0.0.0.0:3009")
+	server.Start(config.ServerAddress)
 }
