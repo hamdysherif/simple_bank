@@ -21,7 +21,7 @@ func TestMain(m *testing.M) {
 
 	log.Println("Driver is: ", config.DBDriver)
 
-	testDB, err = sql.Open(config.DBDriver, config.DBSource)
+	testDB, err = sql.Open(config.DBDriver, config.DBSourceTest)
 	if err != nil {
 		log.Fatal("Can't connect to db:", err)
 	}
