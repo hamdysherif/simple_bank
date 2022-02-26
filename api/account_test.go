@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	mockdb "github.com/hamdysherif/simplebank/db/mock"
 	db "github.com/hamdysherif/simplebank/db/sqlc"
@@ -106,24 +107,23 @@ func TestGetAccountAPI(t *testing.T) {
 
 func TestCreateAccountAPI(t *testing.T) {
 	account := randomAccount()
-	args := createAccountRequest{
-		Owner:    account.Owner,
-		Currency: account.Currency,
-	}
 
 	testCases := []struct {
 		name          string
-		params        createAccountRequest
+		params        gin.H
 		buildStubs    func(store *mockdb.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name:   "OK",
-			params: args,
+			params: gin.H{"owner": account.Owner, "currency": account.Currency},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.
 					EXPECT().
-					CreateAccount(gomock.Any(), db.CreateAccountParams{Owner: args.Owner, Currency: args.Currency, Balance: 0}).
+					CreateAccount(gomock.Any(), db.CreateAccountParams{
+						Owner:    account.Owner,
+						Currency: account.Currency,
+						Balance:  0}).
 					Times(1).
 					Return(account, nil)
 			},
@@ -133,7 +133,7 @@ func TestCreateAccountAPI(t *testing.T) {
 		},
 		{
 			name:   "BadRequestCurrencyNotProvided",
-			params: createAccountRequest{Owner: "Ali", Currency: ""},
+			params: gin.H{"owner": "Ali", "currency": ""},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.
 					EXPECT().
@@ -146,7 +146,7 @@ func TestCreateAccountAPI(t *testing.T) {
 		},
 		{
 			name:   "BadRequestCurrencyNotAllowed",
-			params: createAccountRequest{Owner: "Ali", Currency: "ANY"},
+			params: gin.H{"owner": "Ali", "currency": "ANY"},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.
 					EXPECT().
@@ -159,7 +159,7 @@ func TestCreateAccountAPI(t *testing.T) {
 		},
 		{
 			name:   "BadRequestOwner",
-			params: createAccountRequest{Owner: "", Currency: "LE"},
+			params: gin.H{"owner": "", "currency": "LE"},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.
 					EXPECT().
@@ -172,7 +172,7 @@ func TestCreateAccountAPI(t *testing.T) {
 		},
 		{
 			name:   "InternalServerError",
-			params: createAccountRequest{Owner: "Ali", Currency: "LE"},
+			params: gin.H{"owner": "Ali", "currency": "LE"},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.
 					EXPECT().
@@ -196,12 +196,12 @@ func TestCreateAccountAPI(t *testing.T) {
 	for i := range testCases {
 		tc := testCases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			var reqBody bytes.Buffer
-			err := json.NewEncoder(&reqBody).Encode(tc.params)
+
+			body, err := json.Marshal(tc.params)
 			require.NoError(t, err)
 			tc.buildStubs(store)
 
-			request, err := http.NewRequest(http.MethodPost, url, &reqBody)
+			request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(body))
 			require.NoError(t, err)
 			recorder := httptest.NewRecorder()
 			server.router.ServeHTTP(recorder, request)
