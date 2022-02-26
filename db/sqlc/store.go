@@ -6,20 +6,26 @@ import (
 	"fmt"
 )
 
-type Store struct {
+type Store interface {
+	Querier
+	TransferTx(ctx context.Context, arg TransferParams) (TransferResult, error)
+	TransferTxPure(ctx context.Context, args TransferParams) (TransferResult, error)
+}
+
+type SQLStore struct {
 	*Queries
 	db *sql.DB
 }
 
-func NewStore(db *sql.DB) *Store {
-	return &Store{
+func NewStore(db *sql.DB) Store {
+	return &SQLStore{
 		db:      db,
 		Queries: New(db),
 	}
 }
 
 // extend Store functionality to execute transactions
-func (s *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
+func (s *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	defer tx.Rollback()
 	if err != nil {
@@ -60,7 +66,7 @@ type TransferParams struct {
 // 4- create Entry record on AccountB with +amount
 // 5- subtract the amount from the AccountA (AccountA.balance - amount)
 // 6- add the amount to the AccountB (AccountB.balance + amount)
-func (store *Store) TransferTx(ctx context.Context, arg TransferParams) (TransferResult, error) {
+func (store *SQLStore) TransferTx(ctx context.Context, arg TransferParams) (TransferResult, error) {
 	var result TransferResult
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
@@ -140,7 +146,7 @@ func addMoney(q *Queries, ctx context.Context, accountId int64, amount int64) (A
 	return q.AddAccountBalance(ctx, AddAccountBalanceParams{ID: accountId, Amount: amount})
 }
 
-func (store *Store) TransferTxPure(ctx context.Context, args TransferParams) (TransferResult, error) {
+func (store *SQLStore) TransferTxPure(ctx context.Context, args TransferParams) (TransferResult, error) {
 
 	var result TransferResult
 	// Create a helper function for preparing failure results.
