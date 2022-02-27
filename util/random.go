@@ -43,6 +43,5 @@ func RandomEntryAmount() int64 {
 }
 
 func RandomCurrency() string {
-	currencies := [4]string{"USD", "SAR", "EUR", "LE"}
-	return currencies[rand.Int63n(3)]
+	return AllowedCurrencies()[rand.Intn(len(AllowedCurrencies()))]
 }
