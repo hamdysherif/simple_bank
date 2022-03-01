@@ -12,6 +12,7 @@ type Account struct {
 	Balance   int64     `json:"balance"`
 	Currency  string    `json:"currency"`
 	CreatedAt time.Time `json:"created_at"`
+	UserID    int64     `json:"user_id"`
 }
 
 type Entry struct {
@@ -29,4 +30,15 @@ type Transfer struct {
 	// must be positive
 	Amount    int64     `json:"amount"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+type User struct {
+	ID                int64     `json:"id"`
+	Username          string    `json:"username"`
+	FullName          string    `json:"full_name"`
+	Email             string    `json:"email"`
+	HashedPassword    string    `json:"hashed_password"`
+	PasswordChangedAt time.Time `json:"password_changed_at"`
+	CreatedAt         time.Time `json:"created_at"`
+	UpdatedAt         time.Time `json:"updated_at"`
 }

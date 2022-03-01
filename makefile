@@ -7,11 +7,15 @@ dropdb: |
 	docker exec postgres14 dropdb simple_bank
 	docker exec postgres14 dropdb simple_bank_test
 migrate-up: |
-	migrate -path=db/migrate -database="postgresql://root:secret@localhost:5431/simple_bank?sslmode=disable"  -verbose up
-	migrate -path=db/migrate -database="postgresql://root:secret@localhost:5431/simple_bank_test?sslmode=disable"  -verbose up
+	migrate -path=db/migrate -database="postgresql://root:secret@localhost:5431/simple_bank?sslmode=disable"  -verbose up ${v}
+	migrate -path=db/migrate -database="postgresql://root:secret@localhost:5431/simple_bank_test?sslmode=disable"  -verbose up ${v}
 migrate-down: |
-	migrate -path=db/migrate -database="postgresql://root:secret@localhost:5431/simple_bank?sslmode=disable"  -verbose down
-	migrate -path=db/migrate -database="postgresql://root:secret@localhost:5431/simple_bank_test?sslmode=disable"  -verbose down
+	migrate -path=db/migrate -database="postgresql://root:secret@localhost:5431/simple_bank?sslmode=disable"  -verbose down ${v}
+	migrate -path=db/migrate -database="postgresql://root:secret@localhost:5431/simple_bank_test?sslmode=disable"  -verbose down ${v}
+
+#usage make migrate-create name=[migration_name]
+migrate-create:
+	migrate create -ext sql -dir db/migrate -seq ${name}
 sqlc:
 	sqlc generate
 test:

@@ -129,6 +129,7 @@ func TestCreateAccountAPI(t *testing.T) {
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, recorder.Code)
+				requireBodyMatchResponse(t, recorder.Body, account)
 			},
 		},
 		{
