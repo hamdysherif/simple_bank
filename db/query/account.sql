@@ -13,9 +13,9 @@ OFFSET $1 LIMIT $2;
 
 -- name: CreateAccount :one
 INSERT INTO accounts (
-  owner, balance, currency
+  owner, balance, currency, user_id
 ) VALUES (
-  $1, $2, $3
+  $1, $2, $3, $4
 )
 RETURNING *;
 
