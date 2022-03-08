@@ -186,7 +186,7 @@ func TestTransferAPI(t *testing.T) {
 
 	url := "/transfers"
 	store := mockdb.NewMockStore(ctrl)
-	server := NewServer(store)
+	server := NewTestServer(t, store)
 
 	for i := range testCases {
 		tc := testCases[i]

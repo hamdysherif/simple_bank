@@ -1,15 +1,19 @@
 package util
 
 import (
+	"time"
+
 	"github.com/spf13/viper"
 )
 
 // Config store all configuration
 type Config struct {
-	DBDriver      string `mapstructure:"DB_DRIVER"`
-	DBSource      string `mapstructure:"DB_SOURCE"`
-	DBSourceTest  string `mapstructure:"DB_SOURCE_TEST"`
-	ServerAddress string `mapstructure:"SERVER_ADDRESS"`
+	DBDriver      string        `mapstructure:"DB_DRIVER"`
+	DBSource      string        `mapstructure:"DB_SOURCE"`
+	DBSourceTest  string        `mapstructure:"DB_SOURCE_TEST"`
+	ServerAddress string        `mapstructure:"SERVER_ADDRESS"`
+	SemmetricKey  string        `mapstructure:"SYMMETRIC_KEY"`
+	TokenDuration time.Duration `mapstructure:"TOKEN_DURATION"`
 }
 
 // LoadConfig to return all configuration
