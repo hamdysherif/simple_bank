@@ -88,7 +88,7 @@ func TestGetAccountAPI(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	store := mockdb.NewMockStore(ctrl)
-	server := NewServer(store)
+	server := NewTestServer(t, store)
 
 	for i := range testCases {
 		tc := testCases[i]
@@ -191,7 +191,7 @@ func TestCreateAccountAPI(t *testing.T) {
 	defer ctrl.Finish()
 
 	store := mockdb.NewMockStore(ctrl)
-	server := NewServer(store)
+	server := NewTestServer(t, store)
 	url := "/accounts"
 
 	for i := range testCases {
