@@ -1,0 +1,30 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:14-alpine
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    # networks:
+    #   - backend
+    environment:
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_USER=root
+      - POSTGRES_DB=simple_bank
+      # - POSTGRES_HOST_AUTH_METHOD=trust
+
+  api:
+    ports:
+      - "3009:3009"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+    environment:
+      - DB_SOURCE=postgresql://root:secret@postgres:5432/simple_bank?sslmode=disable
+    # entrypoint: ["/scripts/wait-for-postgres.sh", "/scripts/start.sh"]
+    entrypoint: ["/scripts/wait-for.sh", "postgres:5432", "--", "/scripts/start.sh"]
+    command: [ "/app/main" ]
+
+volumes:
+  db-data:
