@@ -43,13 +43,19 @@ func registerCustomValidators() {
 // SetupRouter setup the routers and urls for the server
 func (server *Server) SetupRouter() {
 	router := gin.Default()
+
+	authorized := router.Group("/")
+	{
+		authorized.Use(Authentication(server.tokenMaker))
+		authorized.POST("/accounts", server.createAccount)
+		authorized.GET("/accounts", server.listAccounts)
+		authorized.GET("/accounts/:id", server.getAccount)
+		authorized.POST("/transfers", server.transferAmount)
+	}
+
 	router.POST("/users", server.createUser)
 	router.POST("/users/login", server.loginUser)
 
-	router.POST("/accounts", server.createAccount)
-	router.GET("/accounts", server.listAccounts)
-	router.GET("/accounts/:id", server.getAccount)
-	router.POST("/transfers", server.transferAmount)
 	server.router = router
 }
 

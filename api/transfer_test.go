@@ -4,16 +4,19 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	mockdb "github.com/hamdysherif/simplebank/db/mock"
 	db "github.com/hamdysherif/simplebank/db/sqlc"
 	"github.com/hamdysherif/simplebank/util"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -196,6 +199,12 @@ func TestTransferAPI(t *testing.T) {
 			require.NoError(t, err)
 
 			request := httptest.NewRequest(http.MethodPost, url, bytes.NewReader(req))
+
+			authorizationType := "bearer"
+			token, err := server.tokenMaker.CreateToken("hamdy", time.Hour)
+
+			assert.NoError(t, err)
+			request.Header.Set("authorization", fmt.Sprintf("%s %s", authorizationType, token))
 			recorder := httptest.NewRecorder()
 
 			tc.buildStubs(store)

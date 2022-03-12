@@ -9,13 +9,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	mockdb "github.com/hamdysherif/simplebank/db/mock"
 	db "github.com/hamdysherif/simplebank/db/sqlc"
 	"github.com/hamdysherif/simplebank/util"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetAccountAPI(t *testing.T) {
@@ -38,7 +39,7 @@ func TestGetAccountAPI(t *testing.T) {
 					Return(account, nil)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusOK, recorder.Code)
+				assert.Equal(t, http.StatusOK, recorder.Code)
 				requireBodyMatchResponse(t, recorder.Body, account)
 			},
 		},
@@ -53,7 +54,7 @@ func TestGetAccountAPI(t *testing.T) {
 					Return(db.Account{}, sql.ErrNoRows)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusNotFound, recorder.Code)
+				assert.Equal(t, http.StatusNotFound, recorder.Code)
 			},
 		},
 		{
@@ -66,7 +67,7 @@ func TestGetAccountAPI(t *testing.T) {
 					Times(0)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusBadRequest, recorder.Code)
+				assert.Equal(t, http.StatusBadRequest, recorder.Code)
 			},
 		},
 		{
@@ -80,7 +81,7 @@ func TestGetAccountAPI(t *testing.T) {
 					Return(db.Account{}, sql.ErrConnDone)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+				assert.Equal(t, http.StatusInternalServerError, recorder.Code)
 			},
 		},
 	}
@@ -95,9 +96,17 @@ func TestGetAccountAPI(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			recorder := httptest.NewRecorder()
 			tc.buildStubs(store)
+
 			url := fmt.Sprintf("/accounts/%d", tc.accountID)
 			request, err := http.NewRequest(http.MethodGet, url, nil)
-			require.NoError(t, err)
+			assert.NoError(t, err)
+
+			authorizationType := "bearer"
+			token, err := server.tokenMaker.CreateToken("hamdy", time.Hour)
+			assert.NoError(t, err)
+
+			request.Header.Set("authorization", fmt.Sprintf("%s %s", authorizationType, token))
+
 			server.router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
 		})
@@ -128,7 +137,7 @@ func TestCreateAccountAPI(t *testing.T) {
 					Return(account, nil)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusOK, recorder.Code)
+				assert.Equal(t, http.StatusOK, recorder.Code)
 				requireBodyMatchResponse(t, recorder.Body, account)
 			},
 		},
@@ -142,7 +151,7 @@ func TestCreateAccountAPI(t *testing.T) {
 					Times(0)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusBadRequest, recorder.Code)
+				assert.Equal(t, http.StatusBadRequest, recorder.Code)
 			},
 		},
 		{
@@ -155,7 +164,7 @@ func TestCreateAccountAPI(t *testing.T) {
 					Times(0)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusBadRequest, recorder.Code)
+				assert.Equal(t, http.StatusBadRequest, recorder.Code)
 			},
 		},
 		{
@@ -168,7 +177,7 @@ func TestCreateAccountAPI(t *testing.T) {
 					Times(0)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusBadRequest, recorder.Code)
+				assert.Equal(t, http.StatusBadRequest, recorder.Code)
 			},
 		},
 		{
@@ -182,7 +191,7 @@ func TestCreateAccountAPI(t *testing.T) {
 					Return(db.Account{}, sql.ErrConnDone)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+				assert.Equal(t, http.StatusInternalServerError, recorder.Code)
 			},
 		},
 	}
@@ -199,11 +208,18 @@ func TestCreateAccountAPI(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 
 			body, err := json.Marshal(tc.params)
-			require.NoError(t, err)
+			assert.NoError(t, err)
 			tc.buildStubs(store)
 
 			request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(body))
-			require.NoError(t, err)
+			assert.NoError(t, err)
+
+			authorizationType := "bearer"
+			token, err := server.tokenMaker.CreateToken("hamdy", time.Hour)
+			assert.NoError(t, err)
+
+			request.Header.Set("authorization", fmt.Sprintf("%s %s", authorizationType, token))
+
 			recorder := httptest.NewRecorder()
 			server.router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
@@ -222,10 +238,10 @@ func randomAccount() db.Account {
 
 func requireBodyMatchResponse(t *testing.T, body *bytes.Buffer, account db.Account) {
 	b, err := ioutil.ReadAll(body)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 
 	var getAccount db.Account
 	err = json.Unmarshal(b, &getAccount)
-	require.NoError(t, err)
-	require.Equal(t, getAccount, account)
+	assert.NoError(t, err)
+	assert.Equal(t, getAccount, account)
 }
