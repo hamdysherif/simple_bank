@@ -1,4 +1,4 @@
-name: CI
+name: CI Test
 
 on:
   push:
@@ -40,8 +40,8 @@ jobs:
 
     - name: Set up golang migrate
       run: |
-          sudo curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.1/migrate.linux-amd64.tar.gz | tar xvz
-          sudo mv migrate /usr/bin/migrate
+          go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+          sudo cp $(go env GOPATH)/bin/migrate /usr/bin/migrate
           which migrate
 
     - name: Run migration
